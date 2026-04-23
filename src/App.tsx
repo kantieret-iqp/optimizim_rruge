@@ -9,7 +9,6 @@ import { useRouteOptimizer } from './hooks/useRouteOptimizer'
 import { useStops } from './hooks/useStops'
 import { useVehicles } from './hooks/useVehicles'
 import { useDepot } from './hooks/useDepot'
-import type { RouteMode } from './types'
 
 export default function App() {
   const [vehicleCount, setVehicleCount] = useState(1)

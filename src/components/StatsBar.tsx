@@ -1,5 +1,5 @@
 // src/components/StatsBar.tsx
-import type { OptimizeResult, Vehicle } from '../types'
+import type { OptimizeResult } from '../types'
 
 interface Props {
   result: OptimizeResult | null
