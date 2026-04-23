@@ -2,7 +2,7 @@
 import { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import type { RouteStop, Stop } from '../types'
+import type { RouteStop, RouteLine, Stop } from '../types'
 
 // Fix Leaflet default icon paths
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
@@ -15,9 +15,11 @@ L.Icon.Default.mergeOptions({
 interface Props {
   stops: Stop[]
   routeStops: RouteStop[]
+  routeLines?: RouteLine[]
   depotLat: number
   depotLng: number
   onMapClick?: (lat: number, lng: number) => void
+  onDepotMove?: (lat: number, lng: number) => void
 }
 
 const VEHICLE_COLORS = ['#3d8ef8', '#22c98a', '#f59e0b', '#ef4444', '#a78bfa']
@@ -39,7 +41,7 @@ function createMarkerIcon(label: string, color: string, size = 32) {
   })
 }
 
-export function DeliveryMap({ stops, routeStops, depotLat, depotLng, onMapClick }: Props) {
+export function DeliveryMap({ stops, routeStops, routeLines, depotLat, depotLng, onMapClick, onDepotMove }: Props) {
   const mapRef = useRef<L.Map | null>(null)
   const layerRef = useRef<L.LayerGroup | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -65,12 +67,20 @@ export function DeliveryMap({ stops, routeStops, depotLat, depotLng, onMapClick 
     if (!mapRef.current || !layerRef.current) return
     layerRef.current.clearLayers()
 
-    // Depot marker
-    L.marker([depotLat, depotLng], {
+    // Depot marker — draggable
+    const depotMarker = L.marker([depotLat, depotLng], {
       icon: createMarkerIcon('D', '#3d8ef8', 36),
+      draggable: !!onDepotMove,
     })
-      .bindPopup('<b>Depot kryesor</b><br>Pika fillestare')
+      .bindPopup('<b>Depot kryesor</b><br>' + (onDepotMove ? 'Zvarrit për ta zhvendosur' : 'Pika fillestare'))
       .addTo(layerRef.current)
+
+    if (onDepotMove) {
+      depotMarker.on('dragend', (e) => {
+        const { lat, lng } = (e.target as L.Marker).getLatLng()
+        onDepotMove(lat, lng)
+      })
+    }
 
     if (routeStops.length > 0) {
       // Group by vehicle for VRP coloring
@@ -81,25 +91,53 @@ export function DeliveryMap({ stops, routeStops, depotLat, depotLng, onMapClick 
         byVehicle.get(key)!.push(s)
       })
 
+      // Draw route lines: OSRM road geometry if available, else straight polyline
+      const addAnimated = (layer: L.Layer) => {
+        layer.addTo(layerRef.current!)
+        const el = (layer as L.Path).getElement?.()
+        if (el) el.classList.add('route-animated')
+      }
+
+      if (routeLines?.length) {
+        routeLines.forEach((rl) => {
+          if (rl.geojson) {
+            const gjLayer = L.geoJSON(rl.geojson as Parameters<typeof L.geoJSON>[0], {
+              style: { color: rl.color, weight: 4, opacity: 0.9 },
+            })
+            gjLayer.addTo(layerRef.current!)
+            gjLayer.eachLayer((l) => {
+              const el = (l as L.Path).getElement?.()
+              if (el) el.classList.add('route-animated')
+            })
+          } else {
+            const vstops = byVehicle.get(rl.vehicle_id ? String(rl.vehicle_id) : '1') ?? []
+            const latlngs: L.LatLngTuple[] = [
+              [depotLat, depotLng],
+              ...vstops.map((s) => [s.lat, s.lng] as L.LatLngTuple),
+              [depotLat, depotLng],
+            ]
+            addAnimated(L.polyline(latlngs, { color: rl.color, weight: 4, opacity: 0.9 }))
+          }
+        })
+      } else {
+        let vIdx = 0
+        byVehicle.forEach((vstops) => {
+          const color = VEHICLE_COLORS[vIdx % VEHICLE_COLORS.length]
+          vIdx++
+          const latlngs: L.LatLngTuple[] = [
+            [depotLat, depotLng],
+            ...vstops.map((s) => [s.lat, s.lng] as L.LatLngTuple),
+            [depotLat, depotLng],
+          ]
+          addAnimated(L.polyline(latlngs, { color, weight: 4, opacity: 0.9 }))
+        })
+      }
+
+      // Stop markers (always from routeStops)
       let vIdx = 0
       byVehicle.forEach((vstops) => {
-        const color = VEHICLE_COLORS[vIdx % VEHICLE_COLORS.length]
+        const color = routeLines?.[vIdx]?.color ?? VEHICLE_COLORS[vIdx % VEHICLE_COLORS.length]
         vIdx++
-
-        // Route line
-        const latlngs: L.LatLngTuple[] = [
-          [depotLat, depotLng],
-          ...vstops.map((s) => [s.lat, s.lng] as L.LatLngTuple),
-          [depotLat, depotLng],
-        ]
-        L.polyline(latlngs, {
-          color,
-          weight: 3,
-          opacity: 0.8,
-          dashArray: undefined,
-        }).addTo(layerRef.current!)
-
-        // Stop markers
         vstops.forEach((s) => {
           if (s.stop_id === 0) return
           const isUrgent = s.priority === 1

@@ -64,5 +64,13 @@ html, body, #root {
 @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes routeFlow { to { stroke-dashoffset: -24; } }
+
+/* Animated route line — dashes flow in direction of travel */
+.route-animated {
+  stroke-dasharray: 14, 10;
+  stroke-dashoffset: 0;
+  animation: routeFlow 0.7s linear infinite;
+}
 
 .fade-in { animation: fadeIn 0.3s ease forwards; }

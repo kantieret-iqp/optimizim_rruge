@@ -8,17 +8,15 @@ import { Modal } from './components/Modal'
 import { useRouteOptimizer } from './hooks/useRouteOptimizer'
 import { useStops } from './hooks/useStops'
 import { useVehicles } from './hooks/useVehicles'
+import { useDepot } from './hooks/useDepot'
 import type { RouteMode } from './types'
-
-// Depot default — Tiranë qendër
-const DEPOT_LAT = 41.3275
-const DEPOT_LNG = 19.8187
 
 export default function App() {
   const [mode, setMode] = useState<RouteMode>('tsp')
   const [showForm, setShowForm] = useState(false)
   const [clickedCoords, setClickedCoords] = useState<{ lat: number; lng: number } | null>(null)
 
+  const { depot, moveDepot } = useDepot()
   const { stops, loading: stopsLoading, addStop, deleteStop } = useStops()
   const { vehicles } = useVehicles()
   const { result, loading: routeLoading, optimize } = useRouteOptimizer({ mode })
@@ -110,9 +108,11 @@ export default function App() {
           <DeliveryMap
             stops={stops}
             routeStops={routeStops}
-            depotLat={DEPOT_LAT}
-            depotLng={DEPOT_LNG}
+            routeLines={result?.route_lines}
+            depotLat={depot.lat}
+            depotLng={depot.lng}
             onMapClick={handleMapClick}
+            onDepotMove={moveDepot}
           />
         </div>
       </div>

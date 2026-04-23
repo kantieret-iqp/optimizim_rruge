@@ -56,14 +56,19 @@ export interface RouteStop {
   vehicle_name?: string
 }
 
+export interface RouteLine {
+  vehicle_id: number | null
+  color: string
+  geojson: GeoJSONFeature | null
+}
+
 export interface OptimizeResult {
   success: boolean
   mode: 'tsp' | 'vrp'
   total_km: string
   total_stops: number
-  geojson: GeoJSONFeatureCollection
-  route_line: GeoJSONFeature
   raw: RouteStop[]
+  route_lines?: RouteLine[]
 }
 
 export interface GeoJSONFeatureCollection {
