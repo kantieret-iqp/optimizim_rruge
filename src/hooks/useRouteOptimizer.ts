@@ -4,12 +4,12 @@ import { supabase } from '../lib/supabase'
 import type { OptimizeResult, RouteMode } from '../types'
 
 interface Options {
-  mode: RouteMode
-  vehicleId?: number
+  vehicleCount: number  // 1 = TSP, 2+ = VRP
   debounceMs?: number
 }
 
-export function useRouteOptimizer({ mode, vehicleId, debounceMs = 300 }: Options) {
+export function useRouteOptimizer({ vehicleCount, debounceMs = 300 }: Options) {
+  const mode: RouteMode = vehicleCount === 1 ? 'tsp' : 'vrp'
   const [result, setResult] = useState<OptimizeResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -22,7 +22,7 @@ export function useRouteOptimizer({ mode, vehicleId, debounceMs = 300 }: Options
       const { data, error: fnError } = await supabase.functions.invoke('optimize-route', {
         body: {
           mode,
-          vehicle_id: vehicleId ?? null,
+          vehicle_count: vehicleCount,
           date: new Date().toISOString().split('T')[0],
         },
       })
@@ -34,14 +34,13 @@ export function useRouteOptimizer({ mode, vehicleId, debounceMs = 300 }: Options
     } finally {
       setLoading(false)
     }
-  }, [mode, vehicleId])
+  }, [mode, vehicleCount])
 
   const debouncedOptimize = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current)
     timerRef.current = setTimeout(optimize, debounceMs)
   }, [optimize, debounceMs])
 
-  // Realtime listener — rillogarit kur ndryshon tabela stops
   useEffect(() => {
     optimize()
     const channel = supabase
@@ -52,7 +51,7 @@ export function useRouteOptimizer({ mode, vehicleId, debounceMs = 300 }: Options
       supabase.removeChannel(channel)
       if (timerRef.current) clearTimeout(timerRef.current)
     }
-  }, [mode, vehicleId])
+  }, [vehicleCount])
 
   return { result, loading, error, optimize }
 }

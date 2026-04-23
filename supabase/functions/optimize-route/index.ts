@@ -95,7 +95,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
-    const { mode } = await req.json()
+    const { mode, vehicle_count } = await req.json()
 
     const { data: depotRow, error: dErr } = await supabase.from('depot').select('lat,lng').limit(1).single()
     if (dErr || !depotRow) throw new Error('Depot nuk u gjet')
@@ -145,6 +145,7 @@ serve(async (req) => {
     // ── VRP ──────────────────────────────────────────────────────────────────
     const { data: vrpClusters, error: vErr } = await supabase.rpc('calculate_route_vrp', {
       p_date: new Date().toISOString().split('T')[0],
+      p_vehicle_count: vehicle_count ?? null,
     })
     if (vErr) throw new Error(vErr.message)
 

@@ -12,14 +12,14 @@ import { useDepot } from './hooks/useDepot'
 import type { RouteMode } from './types'
 
 export default function App() {
-  const [mode, setMode] = useState<RouteMode>('tsp')
+  const [vehicleCount, setVehicleCount] = useState(1)
   const [showForm, setShowForm] = useState(false)
   const [clickedCoords, setClickedCoords] = useState<{ lat: number; lng: number } | null>(null)
 
   const { depot, moveDepot } = useDepot()
   const { stops, loading: stopsLoading, addStop, deleteStop } = useStops()
   const { vehicles } = useVehicles()
-  const { result, loading: routeLoading, optimize } = useRouteOptimizer({ mode })
+  const { result, loading: routeLoading, optimize } = useRouteOptimizer({ vehicleCount })
 
   const handleMapClick = (lat: number, lng: number) => {
     setClickedCoords({ lat, lng })
@@ -40,10 +40,10 @@ export default function App() {
       <StatsBar
         result={result}
         loading={routeLoading}
-        vehicles={vehicles}
-        mode={mode}
+        maxVehicles={vehicles.length || 6}
+        vehicleCount={vehicleCount}
         onOptimize={optimize}
-        onModeChange={setMode}
+        onVehicleCountChange={setVehicleCount}
       />
 
       {/* Main layout */}
@@ -69,7 +69,7 @@ export default function App() {
           )}
 
           {/* Vehicle legend for VRP */}
-          {mode === 'vrp' && vehicles.length > 0 && (
+          {vehicleCount > 1 && vehicles.length > 0 && (
             <div style={{
               marginTop: 'auto', paddingTop: 12,
               borderTop: '1px solid var(--border)',

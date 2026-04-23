@@ -4,15 +4,16 @@ import type { OptimizeResult, Vehicle } from '../types'
 interface Props {
   result: OptimizeResult | null
   loading: boolean
-  vehicles: Vehicle[]
-  mode: 'tsp' | 'vrp'
+  maxVehicles: number
+  vehicleCount: number
   onOptimize: () => void
-  onModeChange: (m: 'tsp' | 'vrp') => void
+  onVehicleCountChange: (n: number) => void
 }
 
-export function StatsBar({ result, loading, vehicles, mode, onOptimize, onModeChange }: Props) {
+export function StatsBar({ result, loading, maxVehicles, vehicleCount, onOptimize, onVehicleCountChange }: Props) {
   const totalKm = parseFloat(result?.total_km ?? '0')
   const fuelEst = (totalKm * 0.08).toFixed(1)
+  const counts = Array.from({ length: maxVehicles }, (_, i) => i + 1)
 
   return (
     <div style={{
@@ -33,23 +34,26 @@ export function StatsBar({ result, loading, vehicles, mode, onOptimize, onModeCh
         <span style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>DeliveryRoute</span>
       </div>
 
-      {/* Mode toggle */}
-      <div style={{ display: 'flex', background: 'var(--bg3)', borderRadius: 8, padding: 2, gap: 2 }}>
-        {(['tsp', 'vrp'] as const).map(m => (
-          <button
-            key={m}
-            onClick={() => onModeChange(m)}
-            style={{
-              padding: '4px 14px', borderRadius: 6, border: 'none',
-              background: mode === m ? 'var(--accent)' : 'transparent',
-              color: mode === m ? '#fff' : 'var(--text2)',
-              fontSize: 12, fontWeight: 500, cursor: 'pointer',
-              transition: 'all 0.15s',
-            }}
-          >
-            {m === 'tsp' ? `1 Shofer` : `${vehicles.length} Shoferë`}
-          </button>
-        ))}
+      {/* Vehicle count selector */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <span style={{ fontSize: 9, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Shoferë</span>
+        <div style={{ display: 'flex', background: 'var(--bg3)', borderRadius: 8, padding: 2, gap: 2 }}>
+          {counts.map(n => (
+            <button
+              key={n}
+              onClick={() => onVehicleCountChange(n)}
+              style={{
+                width: 28, height: 24, borderRadius: 6, border: 'none',
+                background: vehicleCount === n ? 'var(--accent)' : 'transparent',
+                color: vehicleCount === n ? '#fff' : 'var(--text2)',
+                fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Stats */}
@@ -57,7 +61,7 @@ export function StatsBar({ result, loading, vehicles, mode, onOptimize, onModeCh
         <Stat label="Distanca" value={result ? `${result.total_km} km` : '—'} color="var(--accent)" />
         <Stat label="Pika" value={result ? String(result.total_stops) : '—'} />
         <Stat label="Karburant" value={result ? `${fuelEst} L` : '—'} color="var(--green)" />
-        <Stat label="Shoferë" value={String(vehicles.length)} />
+        <Stat label="Shoferë" value={String(vehicleCount)} />
       </div>
 
       {/* Optimize button */}
