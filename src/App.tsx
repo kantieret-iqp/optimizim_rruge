@@ -116,7 +116,7 @@ export default function App() {
           <button
             onClick={() => setShowPanel(p => !p)}
             style={{
-              position: 'absolute',
+              position: 'fixed',
               bottom: showPanel ? 'calc(55vh + 12px)' : 16,
               left: '50%',
               transform: 'translateX(-50%)',
@@ -143,7 +143,7 @@ export default function App() {
         {/* Mobile: bottom sheet panel */}
         {isMobile && (
           <div style={{
-            position: 'absolute',
+            position: 'fixed',
             bottom: showPanel ? 0 : '-55vh',
             left: 0, right: 0,
             height: '55vh',
