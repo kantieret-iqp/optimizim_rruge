@@ -74,3 +74,10 @@ html, body, #root {
 }
 
 .fade-in { animation: fadeIn 0.3s ease forwards; }
+
+/* Mobile: leaflet map fills container edge-to-edge */
+@media (max-width: 767px) {
+  .leaflet-container { border-radius: 0 !important; }
+  /* Prevent iOS rubber-band scroll on the map */
+  body { overscroll-behavior: none; }
+}
