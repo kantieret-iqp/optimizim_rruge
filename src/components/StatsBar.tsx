@@ -8,10 +8,11 @@ interface Props {
   vehicleCount: number
   onOptimize: () => void
   onVehicleCountChange: (n: number) => void
+  onLogout: () => void
   isMobile?: boolean
 }
 
-export function StatsBar({ result, loading, maxVehicles, vehicleCount, onOptimize, onVehicleCountChange, isMobile }: Props) {
+export function StatsBar({ result, loading, maxVehicles, vehicleCount, onOptimize, onVehicleCountChange, onLogout, isMobile }: Props) {
   const totalKm = parseFloat(result?.total_km ?? '0')
   const fuelEst = (totalKm * 0.08).toFixed(1)
   const counts = Array.from({ length: maxVehicles }, (_, i) => i + 1)
@@ -53,7 +54,7 @@ export function StatsBar({ result, loading, maxVehicles, vehicleCount, onOptimiz
             ) : '▶ Optimizo'}
           </button>
         </div>
-        {/* Row 2: vehicle selector */}
+        {/* Row 2: vehicle selector + logout */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.05em', flexShrink: 0 }}>Shoferë:</span>
           <div style={{ display: 'flex', background: 'var(--bg3)', borderRadius: 8, padding: 2, gap: 2 }}>
@@ -73,6 +74,17 @@ export function StatsBar({ result, loading, maxVehicles, vehicleCount, onOptimiz
               </button>
             ))}
           </div>
+          <button
+            onClick={onLogout}
+            title="Dil"
+            style={{
+              marginLeft: 'auto', background: 'transparent', border: '1px solid var(--border2)',
+              borderRadius: 7, padding: '4px 10px', fontSize: 11, color: 'var(--text3)',
+              cursor: 'pointer',
+            }}
+          >
+            Dil
+          </button>
         </div>
       </div>
     )
@@ -147,6 +159,27 @@ export function StatsBar({ result, loading, maxVehicles, vehicleCount, onOptimiz
             Duke llogaritur...
           </>
         ) : '▶ Optimizo rrugën'}
+      </button>
+
+      {/* Logout button */}
+      <button
+        onClick={onLogout}
+        title="Dil nga aplikimi"
+        style={{
+          background: 'transparent',
+          border: '1px solid var(--border2)',
+          borderRadius: 8,
+          padding: '7px 12px',
+          fontSize: 12,
+          color: 'var(--text3)',
+          cursor: 'pointer',
+          transition: 'all 0.15s',
+          flexShrink: 0,
+        }}
+        onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--red)'; e.currentTarget.style.color = 'var(--red)' }}
+        onMouseOut={e => { e.currentTarget.style.borderColor = 'var(--border2)'; e.currentTarget.style.color = 'var(--text3)' }}
+      >
+        Dil
       </button>
     </div>
   )

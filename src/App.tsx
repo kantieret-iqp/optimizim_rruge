@@ -11,7 +11,7 @@ import { useVehicles } from './hooks/useVehicles'
 import { useDepot } from './hooks/useDepot'
 import { useIsMobile } from './hooks/useIsMobile'
 
-export default function App() {
+export default function App({ onLogout }: { onLogout: () => void }) {
   const [vehicleCount, setVehicleCount] = useState(1)
   const [showForm, setShowForm] = useState(false)
   const [showPanel, setShowPanel] = useState(false)
@@ -70,6 +70,7 @@ export default function App() {
         vehicleCount={vehicleCount}
         onOptimize={optimize}
         onVehicleCountChange={setVehicleCount}
+        onLogout={onLogout}
         isMobile={isMobile}
       />
 
